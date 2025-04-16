@@ -1,0 +1,47 @@
+<canvas id="visualizer" width="1000" height="800"></canvas>
+<br />
+<audio id="audio" controls>
+    <source src="A Kaleidoscope of Mathematics.mp3" type="audio/mp3">
+  </audio>
+  
+
+<script>
+const canvas = document.getElementById("visualizer");
+const ctx = canvas.getContext("2d");
+const audio = document.querySelector("audio");
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const source = audioCtx.createMediaElementSource(audio);
+const analyser = audioCtx.createAnalyser();
+analyser.fftSize = 256;
+
+const dataArray = new Uint8Array(analyser.frequencyBinCount);
+source.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+function draw() {
+    requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const barWidth = (canvas.width / dataArray.length) * 2.5;
+    let x = 0;
+
+    dataArray.forEach((v, i) => {
+        const height = v;
+        const r = 85 + i * 2;
+        const g = 137 - i;
+        const b = 107 + v;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(x, canvas.height - height, barWidth, height);
+        x += barWidth + 1;
+    });
+}
+
+audio.onplay = () => {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    draw();
+};
+</script>
