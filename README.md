@@ -1,5 +1,10 @@
-Inspired by milkdrop
-Demo: 
+# WebDrop
+
+Inspired by MilkDrop.
+
+**Demo:**  
 https://truedeity.github.io/webdrop/
-Local:
+
+**Run Locally:**  
+```bash
 python -m http.server
