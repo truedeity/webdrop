@@ -239,16 +239,16 @@ function kaleidoscopeVisualizer() {
     for (let s = 0; s < symmetry; s++) {
         ctx.save();
         ctx.rotate(s * angleStep);
-        
+
         for (let i = 0; i < 100; i++) {
             if (Math.random() < treb / 255) {
-              const x = Math.random() * canvas.width;
-              const y = Math.random() * canvas.height;
-              ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
-              ctx.fillRect(x, y, 1.5, 1.5);
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
+                ctx.fillRect(x, y, 1.5, 1.5);
             }
-          }
-          
+        }
+
         for (let i = 0; i < spikeCount; i++) {
             const angle = i * 0.3 + time * 0.2;
             const radius = 80 + Math.sin(time + i) * 50 + bass * 1.5;
@@ -305,6 +305,11 @@ function kaleidoscopeVisualizer() {
 }
 
 
+function hybridVisualizer() {
+    nebulaVisualizer();
+    kaleidoscopeVisualizer();
+}
+
 
 function draw() {
     requestAnimationFrame(draw);
@@ -327,7 +332,10 @@ function draw() {
         nebulaVisualizer();
     } else if (currentVisualizer === "kaleidoscope") {
         kaleidoscopeVisualizer();
+    } else if (currentVisualizer === "hybrid") {
+        hybridVisualizer();
     }
+
 
 
 
