@@ -70,6 +70,42 @@ function waveformVisualizer() {
   ctx.stroke();
 }
 
+function spiralVisualizer() {
+    analyser.getByteFrequencyData(dataArray);
+  
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+  
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "hsl(" + (Date.now() % 360) + ", 100%, 70%)";
+    ctx.beginPath();
+  
+    let a = 2;
+    let b = 4;
+    let maxTheta = Math.PI * 6;
+    let points = 100;
+  
+    for (let i = 0; i < points; i++) {
+      let theta = (i / points) * maxTheta;
+      let r = a + b * theta;
+  
+      // Use frequency data to scale radius
+      let binIndex = Math.floor((i / points) * dataArray.length);
+      r *= 1 + dataArray[binIndex] / 255;
+  
+      let x = centerX + r * Math.cos(theta);
+      let y = centerY + r * Math.sin(theta);
+  
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+  
+    ctx.stroke();
+  }
+  
 function draw() {
   requestAnimationFrame(draw);
 
@@ -81,7 +117,10 @@ function draw() {
     barsVisualizer();
   } else if (currentVisualizer === "waveform") {
     waveformVisualizer();
+  } else if (currentVisualizer === "spiral") {
+    spiralVisualizer();
   }
+  
 }
 
 audio.onplay = () => {
