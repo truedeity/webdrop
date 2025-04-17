@@ -303,6 +303,66 @@ function kaleidoscopeVisualizer() {
 
     ctx.restore();
 }
+let mandelbrotZoom = 1.5;
+let mandelbrotOffsetX = -0.5;
+let mandelbrotOffsetY = 0;
+let mandelbrotTimeStart = Date.now();
+// Seahorse Valley
+let mandelbrotTarget = { x: -0.7453, y: 0.1127 };
+
+function mandelbrotVisualizer() {
+    analyser.getByteFrequencyData(dataArray);
+    const bass = dataArray.slice(0, 20).reduce((a, b) => a + b, 0) / 20;
+
+    mandelbrotZoom *= 1 + bass * 0.00005;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    const maxIter = 100 + Math.floor(bass / 2);
+    const imgData = ctx.createImageData(w, h);
+    const data = imgData.data;
+
+    for (let px = 0; px < w; px++) {
+        for (let py = 0; py < h; py++) {
+            const x0 = (px - w / 2) / (0.5 * mandelbrotZoom * w) + mandelbrotTarget.x;
+            const y0 = (py - h / 2) / (0.5 * mandelbrotZoom * h) + mandelbrotTarget.y;
+
+            let iteration = 0;
+
+            // Early-out for known Mandelbrot interior points
+            const x = x0;
+            const y = y0;
+            const q = (x - 0.25) * (x - 0.25) + y * y;
+
+            let isInSet = false;
+            if (q * (q + (x - 0.25)) < 0.25 * y * y || (x + 1) * (x + 1) + y * y < 1 / 16) {
+                iteration = maxIter;
+                isInSet = true;
+            }
+
+            if (!isInSet) {
+                let zx = 0, zy = 0;
+                while (zx * zx + zy * zy <= 4 && iteration < maxIter) {
+                    const xtemp = zx * zx - zy * zy + x0;
+                    zy = 2 * zx * zy + y0;
+                    zx = xtemp;
+                    iteration++;
+                }
+            }
+
+            const color = iteration === maxIter ? 0 : 255 - Math.floor(iteration * 255 / maxIter);
+            const idx = 4 * (py * w + px);
+            data[idx] = (color + bass * 0.5) % 255;
+            data[idx + 1] = (color * 1.2) % 255;
+            data[idx + 2] = (color * 2.5) % 255;
+            data[idx + 3] = 255;
+        }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+}
+
+
 
 
 function hybridVisualizer() {
@@ -334,6 +394,8 @@ function draw() {
         kaleidoscopeVisualizer();
     } else if (currentVisualizer === "hybrid") {
         hybridVisualizer();
+    } else if (currentVisualizer === "mandelbrot") {
+        mandelbrotVisualizer();
     }
 
 
