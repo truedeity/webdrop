@@ -25,3 +25,18 @@ for (let i = 0; i < 250; i++) {
     band: Math.floor(Math.random() * analyser.frequencyBinCount)
   });
 }
+
+const orbitingSystems = [];
+
+for (let i = 0; i < 60; i++) {
+  let particles = [];
+  for (let j = 0; j < 6; j++) {
+    particles.push({
+      angle: Math.random() * Math.PI * 2,
+      radius: 5 + Math.random() * 15,
+      speed: 0.01 + Math.random() * 0.03,
+      offset: j * 10
+    });
+  }
+  orbitingSystems.push(particles);
+}

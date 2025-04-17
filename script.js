@@ -105,6 +105,7 @@ function spiralVisualizer() {
 
     ctx.stroke();
 }
+
 function pixelGridVisualizer() {
     analyser.getByteFrequencyData(dataArray);
 
@@ -159,6 +160,7 @@ function orbitsVisualizer() {
         ctx.fill();
     }
 }
+
 function nebulaVisualizer() {
     analyser.getByteFrequencyData(dataArray);
 
@@ -208,6 +210,100 @@ function nebulaVisualizer() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 }
+function kaleidoscopeVisualizer() {
+    analyser.getByteFrequencyData(dataArray);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const symmetry = 8;
+    const angleStep = (Math.PI * 2) / symmetry;
+    const time = Date.now() * 0.001;
+
+    const bass = dataArray.slice(0, 20).reduce((a, b) => a + b, 0) / 20;
+    const treb = dataArray.slice(150).reduce((a, b) => a + b, 0) / (dataArray.length - 150);
+    const energy = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+
+    // fade background slightly to leave trails
+    ctx.fillStyle = `rgba(0, 0, 0, 0.08)`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // faster rotation based on energy and bass
+    ctx.rotate(Math.sin(time * 0.6) * 2 + energy * 0.05);
+
+
+    const spikeCount = 5 + Math.floor(treb / 32);
+
+    for (let s = 0; s < symmetry; s++) {
+        ctx.save();
+        ctx.rotate(s * angleStep);
+        
+        for (let i = 0; i < 100; i++) {
+            if (Math.random() < treb / 255) {
+              const x = Math.random() * canvas.width;
+              const y = Math.random() * canvas.height;
+              ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
+              ctx.fillRect(x, y, 1.5, 1.5);
+            }
+          }
+          
+        for (let i = 0; i < spikeCount; i++) {
+            const angle = i * 0.3 + time * 0.2;
+            const radius = 80 + Math.sin(time + i) * 50 + bass * 1.5;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+
+            const hue = (angle * 180 / Math.PI + time * 60) % 360;
+
+            // Draw line (spike)
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = `hsl(${hue}, 100%, 60%)`;
+            ctx.lineWidth = 2 + treb * 0.01;
+            ctx.stroke();
+
+            // Draw endpoint circle
+            ctx.beginPath();
+            ctx.arc(x, y, 5 + energy * 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = `hsl(${(hue + 180) % 360}, 100%, 50%)`;
+            ctx.fill();
+            if (bass > 180) {
+                ctx.fillStyle = `hsla(${Date.now() % 360}, 100%, 50%, 0.07)`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Orbiting particles around each endpoint
+            const orbitParticles = orbitingSystems[(s * spikeCount + i) % orbitingSystems.length];
+            for (let op of orbitParticles) {
+                op.angle += op.speed;
+                const px = x + Math.cos(op.angle) * op.radius;
+                const py = y + Math.sin(op.angle) * op.radius;
+
+                ctx.beginPath();
+                ctx.fillStyle = `hsl(${(hue + 60 + op.offset) % 360}, 100%, 60%, 0.8)`;
+                ctx.arc(px, py, 2 + energy * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        ctx.restore();
+    }
+
+    // Center pulse
+    const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 50 + bass);
+    coreGradient.addColorStop(0, `rgba(255,255,255,${0.2 + bass / 255})`);
+    coreGradient.addColorStop(1, `rgba(255,255,255,0)`);
+    ctx.fillStyle = coreGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, 50 + bass, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
 
 
 function draw() {
@@ -229,7 +325,10 @@ function draw() {
         orbitsVisualizer();
     } else if (currentVisualizer === "nebula") {
         nebulaVisualizer();
+    } else if (currentVisualizer === "kaleidoscope") {
+        kaleidoscopeVisualizer();
     }
+
 
 
 
