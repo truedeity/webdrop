@@ -11,4 +11,4 @@ python -m http.server
 ```
 
 
-![image](https://github.com/user-attachments/assets/956125c1-3ba9-44f8-b124-8bd8f939b227)
+![image](https://github.com/user-attachments/assets/590a0568-8eec-4474-87ac-4b56426c8829)
