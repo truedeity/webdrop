@@ -16,20 +16,6 @@ analyser.connect(audioCtx.destination);
 
 let currentVisualizer = "bars";
 
-const orbits = [];
-
-for (let i = 0; i < 100; i++) {
-    orbits.push({
-        angle: Math.random() * Math.PI * 2,
-        radius: 50 + Math.random() * 150,
-        speed: 0.002 + Math.random() * 0.01,
-        size: 2 + Math.random() * 3,
-        colorHue: Math.floor(Math.random() * 360),
-        band: Math.floor(Math.random() * analyser.frequencyBinCount)
-    });
-}
-
-
 // Resize canvas to match display size
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -173,6 +159,56 @@ function orbitsVisualizer() {
         ctx.fill();
     }
 }
+function nebulaVisualizer() {
+    analyser.getByteFrequencyData(dataArray);
+
+    // Slight translucent overlay to create long trails
+    ctx.fillStyle = "rgba(0, 0, 0, 0.06)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Calculate average bass energy
+    const bassEnergy = dataArray.slice(0, 20).reduce((a, b) => a + b, 0) / 20;
+
+    for (let p of nebulaParticles) {
+        const energy = dataArray[p.band] / 255;
+
+        // Add some swirl via sine
+        const swirl = Math.sin(Date.now() * 0.001 + p.band) * 0.5;
+
+        // Boost speed based on intensity
+        const speedFactor = 1 + energy * 4;
+        p.angle += swirl * 0.01;
+
+        p.x += Math.cos(p.angle) * p.speed * speedFactor * 0.5;
+        p.y += Math.sin(p.angle) * p.speed * speedFactor * 0.5;
+
+        // Wraparound edges
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        // Cycle hue wildly with energy and time
+        const hue = (p.hue + Date.now() * 0.05 + energy * 100) % 360;
+        const radius = p.radius * (0.5 + energy * 1.8);
+
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+        gradient.addColorStop(0, `hsla(${hue}, 100%, 75%, ${0.3 + energy * 0.7})`);
+        gradient.addColorStop(1, `hsla(${hue}, 100%, 70%, 0)`);
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Optional: screen pulse for heavy bass
+    if (bassEnergy > 180) {
+        ctx.fillStyle = `rgba(255, 255, 255, 0.02)`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
 
 function draw() {
     requestAnimationFrame(draw);
@@ -191,7 +227,10 @@ function draw() {
         pixelGridVisualizer();
     } else if (currentVisualizer === "orbits") {
         orbitsVisualizer();
+    } else if (currentVisualizer === "nebula") {
+        nebulaVisualizer();
     }
+
 
 
 
