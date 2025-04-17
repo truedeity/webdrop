@@ -1,47 +1,80 @@
-<canvas id="visualizer" width="1000" height="800"></canvas>
-<br />
-<audio id="audio" controls>
-    <source src="A Kaleidoscope of Mathematics.mp3" type="audio/mp3">
-</audio>
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <title>WebDrop</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: black;
+            overflow: hidden;
+            font-family: sans-serif;
+            color: white;
+        }
 
-<script>
-    const canvas = document.getElementById("visualizer");
-    const ctx = canvas.getContext("2d");
-    const audio = document.querySelector("audio");
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaElementSource(audio);
-    const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
+        audio,
+        select {
+            display: block;
+            margin-bottom: 8px;
+            width: 250px;
+        }
 
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
+        canvas {
+            display: block;
+        }
 
-    function draw() {
-        requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
+        select {
+            background-color: rgba(38, 38, 38, 0.9);
+            color: white;
+            border: 1px solid #888;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 14px;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+            position: relative;
+            background-image: linear-gradient(45deg, transparent 50%, #ccc 50%),
+                linear-gradient(135deg, #ccc 50%, transparent 50%);
+            background-position: right 10px top 50%, right 5px top 50%;
+            background-size: 8px 8px;
+            background-repeat: no-repeat;
+            padding-right: 30px;
+        }
+    </style>
+</head>
 
-        ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+<body>
 
-        const barWidth = (canvas.width / dataArray.length) * 2.5;
-        let x = 0;
+    <div id="controls">
+        <audio id="audio" controls>
+            <source src="A Kaleidoscope of Mathematics.mp3" type="audio/mp3">
+        </audio>
 
-        dataArray.forEach((v, i) => {
-            const height = v;
-            const r = 85 + i * 2;
-            const g = 137 - i;
-            const b = 107 + v;
-            ctx.fillStyle = `rgb(${r},${g},${b})`;
-            ctx.fillRect(x, canvas.height - height, barWidth, height);
-            x += barWidth + 1;
-        });
-    }
+        <select id="visualizerSelect">
+            <option value="bars">Bars</option>
+            <option value="waveform">Waveform</option>
+        </select>
+    </div>
 
-    audio.onplay = () => {
-        if (audioCtx.state === "suspended") audioCtx.resume();
-        draw();
-    };
-</script>
+    <canvas id="visualizer"></canvas>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
